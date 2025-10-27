@@ -229,24 +229,55 @@ app.get('/api/qr/:id', async (req, res) => {
   }
 });
 
+// app.post('/api/reiniciar-bot/:id', async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'ID inválido' });
+
+//     const empresa = await Empresa.findById(id);
+//     if (!empresa) return res.status(404).json({ error: 'Empresa não encontrada.' });
+
+//     await botManager.reiniciarBot(empresa);
+
+//     // ✅ CORREÇÃO: Usar o ID como chave
+//     const qrCode = botManager.getQRCode(empresa._id.toString());
+//     res.json({ qrCode });
+
+//   } catch (err) {
+//     console.error(err);
+//     return res.status(500).json({ error: 'Erro ao reiniciar bot.' });
+//   }
+// });
+
 app.post('/api/reiniciar-bot/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'ID inválido' });
+    try {
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'ID inválido' });
+        }
 
-    const empresa = await Empresa.findById(id);
-    if (!empresa) return res.status(404).json({ error: 'Empresa não encontrada.' });
+        const empresa = await Empresa.findById(id);
+        if (!empresa) {
+            return res.status(404).json({ error: 'Empresa não encontrada.' });
+        }
 
-    await botManager.reiniciarBot(empresa);
+        // ✅ CORREÇÃO: Usar a função do botManager
+        await botManager.limparSessaoEmpresa(id);
+        
+        // ✅ Pequeno delay para garantir limpeza
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const qrCode = await botManager.reiniciarBot(empresa);
 
-    // ✅ CORREÇÃO: Usar o ID como chave
-    const qrCode = botManager.getQRCode(empresa._id.toString());
-    res.json({ qrCode });
+        res.json({ 
+            qrCode,
+            message: 'Bot reiniciado com sucesso' 
+        });
 
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Erro ao reiniciar bot.' });
-  }
+    } catch (err) {
+        console.error('❌ Erro ao reiniciar bot:', err);
+        return res.status(500).json({ error: 'Erro ao reiniciar bot.' });
+    }
 });
 
 
