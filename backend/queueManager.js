@@ -1,4 +1,4 @@
-// backend/queueManager.js
+// queueManager.js ( Lidar com filas das empresas )  
 class QueueManager {
     constructor() {
         this.queues = new Map(); // { empresaId: [] }

@@ -1,4 +1,5 @@
-// backend/healthManager.js
+// backend/healthManager.js - ( Manter a saúde do sistema e alertar sobre problemas antes que afetem os usuários )
+
 class HealthManager {
     constructor() {
         this.metrics = {
