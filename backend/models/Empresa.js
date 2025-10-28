@@ -101,12 +101,6 @@ const EmpresaSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  // ✅ NOVO CAMPO: PLANO DA EMPRESA
-  plan: {
-    type: String,
-    enum: ['basic', 'premium'],
-    default: 'basic'
-  },
   msgBoasVindas: {
     type: String,
     default: "Olá! 👋 Bem-vindo(a)! Como posso te ajudar?" 
