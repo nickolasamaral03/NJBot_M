@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+// import React, { useState, useEffect } from 'react';
+// import styled from 'styled-components';
 
 const Container = styled.div`
   width: 350px;
@@ -191,8 +191,254 @@ const CampoPrompt = styled(TextArea)`
   flex: 2;
 `;
 
+// const NovaEmpresa = ({ onSuccess }) => {
+//   // ... (Estados existentes)
+//   const [nome, setNome] = useState('');
+//   const [telefone, setTelefone] = useState('');
+//   const [ativo, setAtivo] = useState(true);
+//   const [promptIA, setPromptIA] = useState('');
+//   const [qrCode, setQrCode] = useState(null);
+//   const [loading, setLoading] = useState(false);
+//   const [erro, setErro] = useState('');
+//   const [aguardandoQR, setAguardandoQR] = useState(false);
+//   const [empresaId, setEmpresaId] = useState(null); 
+//   const [conexaoSucesso, setConexaoSucesso] = useState(false); 
+  
+//   // Máscara de telefone (XX) XXXXX-XXXX)
+//   const handleTelefoneChange = (e) => {
+//     let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não for dígito
+//     let formattedValue = '';
+
+//     if (value.length > 0) formattedValue = '(' + value.substring(0, 2);
+//     if (value.length >= 3) formattedValue += ') ' + value.substring(2, 7);
+//     if (value.length >= 8) formattedValue += '-' + value.substring(7, 11);
+
+//     setTelefone(formattedValue);
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     setLoading(true);
+//     setErro('');
+//     setQrCode(null);
+//     setAguardandoQR(false);
+//     setEmpresaId(null);
+
+//     if (!promptIA.trim()) {
+//       setErro('O prompt da IA é obrigatório.');
+//       setLoading(false);
+//       return;
+//     }
+    
+//     // O backend espera o telefone limpo (somente números)
+//     const telefoneLimpo = telefone.replace(/\D/g, '');
+
+//     if (!telefoneLimpo || telefoneLimpo.length < 10) {
+//         setErro('O telefone deve conter DDD e número válidos (mínimo 10 dígitos).');
+//         setLoading(false);
+//         return;
+//     }
+
+
+//     const payload = {
+//       nome,
+//       telefone: telefoneLimpo,
+//       ativo,
+//       setores: [],
+//       promptIA: promptIA.trim()
+//     };
+
+//     try {
+//       const response = await fetch('http://localhost:3000/api/empresas', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(payload),
+//       });
+//       const data = await response.json();
+
+//       if (!response.ok) {
+//         setErro(data.error || 'Erro ao cadastrar empresa');
+//       } else {
+//         setEmpresaId(data.empresa._id); // Define o ID para o polling de status
+        
+//         if (data.qrCode) {
+//           setQrCode(data.qrCode);
+//           setAguardandoQR(true);
+//         } else {
+//           setAguardandoQR(true);
+//         }
+//       }
+//     } catch (err) {
+//       console.error(err);
+//       setErro('Erro na conexão com o servidor.');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     let intervalo;
+    
+//     if (aguardandoQR && empresaId) {
+//       intervalo = setInterval(async () => {
+//         try {
+//           const statusRes = await fetch(`http://localhost:3000/api/bots/status`);
+          
+//           if (!statusRes.ok) {
+//               console.error(`Erro ${statusRes.status} ao buscar status dos bots.`);
+//               return; 
+//           }
+          
+//           const statusData = await statusRes.json();
+//           const isConnected = statusData[empresaId]?.conectado === true;
+
+//           if (isConnected) {
+//               // >>> SUCESSO DE CONEXÃO: Bot conectou <<<
+              
+//               // Para o Polling IMEDIATAMENTE.
+//               clearInterval(intervalo);
+//               setAguardandoQR(false); 
+
+//               const empresaRes = await fetch(`http://localhost:3000/api/empresas/${empresaId}`); 
+              
+//               if (empresaRes.ok) {
+//                   const empresaData = await empresaRes.json();
+                  
+//                   if (onSuccess && empresaData) {
+//                       onSuccess(empresaData); 
+//                   }
+                  
+//                   // 1. Ativa o estado de sucesso
+//                   setConexaoSucesso(true); 
+                  
+//                   // 2. Limpa SOMENTE o estado do QR Code (para sumir com a imagem)
+//                   setQrCode(null);
+                  
+//                   // 3. Limpa o formulário APÓS disparar o feedback
+//                   // Usamos um timeout de 1ms para garantir que a mensagem de sucesso
+//                   // seja registrada pelo React antes de limpar o formulário.
+//                   setTimeout(() => {
+//                       // Limpeza final de todos os inputs e estados
+//                       setNome('');
+//                       setTelefone('');
+//                       setPromptIA('');
+//                       setEmpresaId(null);
+//                       setErro('');
+//                   }, 1); 
+
+//                   // 4. Define um timeout para remover a MENSAGEM de sucesso (3 segundos)
+//                   setTimeout(() => {
+//                       setConexaoSucesso(false);
+//                   }, 3000);
+                  
+//               } else {
+//                   console.error(`Falha ao buscar empresa ID ${empresaId}: Status ${empresaRes.status}`);
+//                   // Se falhar na busca final, apenas limpa e para o polling.
+//                   setAguardandoQR(false);
+//                   clearInterval(intervalo);
+//               }
+              
+//           } else {
+//               // 2. Se não conectou, verifica se o QR Code ainda está disponível
+//               const qrRes = await fetch(`http://localhost:3000/api/qr/${empresaId}`); 
+              
+//               if (qrRes.status === 204) {
+//                   setQrCode(null);
+//               } else if (qrRes.ok) {
+//                   const qrData = await qrRes.json();
+//                   setQrCode(qrData.qrCode);
+//               }
+//           }
+//         } catch (err) {
+//           console.error('Erro no Polling de Status:', err);
+//         }
+//       }, 5000);
+//     }
+//     return () => clearInterval(intervalo);
+//   }, [aguardandoQR, empresaId, onSuccess]); // Removido o ConexaoSucesso do array, já que ele é o resultado da lógica
+
+//   return (
+//     <Container>
+//       <Title>Cadastrar Empresa:</Title>
+//       <Form onSubmit={handleSubmit}>
+//         {/* ... (Inputs existentes, com disabled) */}
+//         <Input
+//           type="text"
+//           placeholder="Nome da Empresa:"
+//           value={nome}
+//           onChange={(e) => setNome(e.target.value)}
+//           required
+//           disabled={aguardandoQR || loading || conexaoSucesso}
+//         />
+
+//         <Input
+//           type="text"
+//           placeholder="Número do WhatsApp: (XX) XXXXX-XXXX"
+//           value={telefone}
+//           onChange={handleTelefoneChange}
+//           maxLength="15"
+//           required
+//           disabled={aguardandoQR || loading || conexaoSucesso}
+//         />
+
+//         <TextArea
+//           placeholder="Prompt da IA:"
+//           value={promptIA}
+//           onChange={(e) => setPromptIA(e.target.value)}
+//           required
+//           disabled={aguardandoQR || loading || conexaoSucesso}
+//         />
+
+//         <Label>
+//           <input
+//             type="checkbox"
+//             checked={ativo}
+//             onChange={(e) => setAtivo(e.target.checked)}
+//             disabled={aguardandoQR || loading || conexaoSucesso}
+//           />
+//           Bot Ativo
+//         </Label>
+
+//         <Button type="submit" disabled={loading || aguardandoQR || conexaoSucesso}>
+//           {loading ? 'Cadastrando...' : 
+//            aguardandoQR ? 'Aguardando Conexão...' : 'Cadastrar e gerar QR Code'}
+//         </Button>
+//       </Form>
+
+//       {erro && <MessageError>{erro}</MessageError>}
+      
+//       {/* >>> NOVO: Mensagem de Sucesso Isolada (Maior prioridade na renderização) <<< */}
+//       {conexaoSucesso && (
+//         <MessageInfo style={{ background: '#28a745', color: 'white' }}>
+//             ✅ Conectado com sucesso!
+//         </MessageInfo>
+//       )}
+
+//       {/* Mensagem de aguardando QR/Conexão (Somente se não estiver em estado de sucesso) */}
+//       {(aguardandoQR && !conexaoSucesso) && (
+//         <MessageInfo>
+//             {qrCode ? 'Escaneie o QR Code no seu WhatsApp' : 'Aguardando o QR Code ser gerado...'}
+//         </MessageInfo>
+//       )}
+
+//       {qrCode && (
+//         <QRCodeContainer>
+//           <h3>QR Code do WhatsApp</h3>
+//           <img src={qrCode} alt="QR Code do WhatsApp" />
+//         </QRCodeContainer>
+//       )}
+//     </Container>
+//   );
+// };
+
+// export default NovaEmpresa;
+
+import React, { useState, useEffect, useRef } from 'react';
+import styled from 'styled-components';
+
+/* (mantenha aqui seus styled components: Container, Title, Form, Input, TextArea, Button, MessageError, MessageInfo, QRCodeContainer, etc.) */
+
 const NovaEmpresa = ({ onSuccess }) => {
-  // ... (Estados existentes)
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [ativo, setAtivo] = useState(true);
@@ -201,12 +447,24 @@ const NovaEmpresa = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState('');
   const [aguardandoQR, setAguardandoQR] = useState(false);
-  const [empresaId, setEmpresaId] = useState(null); 
-  const [conexaoSucesso, setConexaoSucesso] = useState(false); 
-  
-  // Máscara de telefone (XX) XXXXX-XXXX)
+  const [empresaId, setEmpresaId] = useState(null);
+  const [conexaoSucesso, setConexaoSucesso] = useState(false);
+
+  const isMountedRef = useRef(true);
+  const pollingIntervalRef = useRef(null);
+  const abortStatusRef = useRef(null);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+      if (abortStatusRef.current) abortStatusRef.current.abort();
+    };
+  }, []);
+
   const handleTelefoneChange = (e) => {
-    let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não for dígito
+    let value = e.target.value.replace(/\D/g, '');
     let formattedValue = '';
 
     if (value.length > 0) formattedValue = '(' + value.substring(0, 2);
@@ -218,27 +476,28 @@ const NovaEmpresa = ({ onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isMountedRef.current) return;
+
     setLoading(true);
     setErro('');
     setQrCode(null);
     setAguardandoQR(false);
     setEmpresaId(null);
+    setConexaoSucesso(false);
 
     if (!promptIA.trim()) {
       setErro('O prompt da IA é obrigatório.');
       setLoading(false);
       return;
     }
-    
-    // O backend espera o telefone limpo (somente números)
+
     const telefoneLimpo = telefone.replace(/\D/g, '');
 
     if (!telefoneLimpo || telefoneLimpo.length < 10) {
-        setErro('O telefone deve conter DDD e número válidos (mínimo 10 dígitos).');
-        setLoading(false);
-        return;
+      setErro('O telefone deve conter DDD e número válidos (mínimo 10 dígitos).');
+      setLoading(false);
+      return;
     }
-
 
     const payload = {
       nome,
@@ -254,114 +513,131 @@ const NovaEmpresa = ({ onSuccess }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+
       const data = await response.json();
+
+      if (!isMountedRef.current) return;
 
       if (!response.ok) {
         setErro(data.error || 'Erro ao cadastrar empresa');
       } else {
-        setEmpresaId(data.empresa._id); // Define o ID para o polling de status
-        
+        setEmpresaId(data.empresa._id);
+        // se backend retornou qrCode direto
         if (data.qrCode) {
           setQrCode(data.qrCode);
           setAguardandoQR(true);
         } else {
           setAguardandoQR(true);
         }
+        // iniciar polling de status
+        startPollingStatus(data.empresa._id);
       }
     } catch (err) {
       console.error(err);
+      if (!isMountedRef.current) return;
       setErro('Erro na conexão com o servidor.');
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   };
 
-  useEffect(() => {
-    let intervalo;
-    
-    if (aguardandoQR && empresaId) {
-      intervalo = setInterval(async () => {
-        try {
-          const statusRes = await fetch(`http://localhost:3000/api/bots/status`);
-          
-          if (!statusRes.ok) {
-              console.error(`Erro ${statusRes.status} ao buscar status dos bots.`);
-              return; 
+  const startPollingStatus = (id) => {
+    // limpa qualquer polling anterior
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+    // abort controller para as requisições fetch caso precise abortar
+    if (abortStatusRef.current) {
+      abortStatusRef.current.abort();
+    }
+    abortStatusRef.current = new AbortController();
+
+    pollingIntervalRef.current = setInterval(async () => {
+      if (!isMountedRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        return;
+      }
+      try {
+        const statusRes = await fetch(`http://localhost:3000/api/bots/status`, {
+          signal: abortStatusRef.current.signal,
+        });
+        if (!statusRes.ok) {
+          console.error(`Erro ${statusRes.status} ao buscar status dos bots.`);
+          return;
+        }
+        const statusData = await statusRes.json();
+        const isConnected = statusData[id]?.conectado === true;
+
+        if (isConnected) {
+          // conectou - finaliza polling e atualiza estados
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+          setAguardandoQR(false);
+
+          // busca empresa atualizada
+          try {
+            const empresaRes = await fetch(`http://localhost:3000/api/empresas/${id}`);
+            if (empresaRes.ok) {
+              const empresaData = await empresaRes.json();
+              if (onSuccess && isMountedRef.current) onSuccess(empresaData);
+            } else {
+              console.error(`Falha ao buscar empresa ID ${id}: Status ${empresaRes.status}`);
+            }
+          } catch (err) {
+            console.error('Erro ao buscar empresa final:', err);
           }
-          
-          const statusData = await statusRes.json();
-          const isConnected = statusData[empresaId]?.conectado === true;
 
-          if (isConnected) {
-              // >>> SUCESSO DE CONEXÃO: Bot conectou <<<
-              
-              // Para o Polling IMEDIATAMENTE.
-              clearInterval(intervalo);
-              setAguardandoQR(false); 
+          if (!isMountedRef.current) return;
 
-              const empresaRes = await fetch(`http://localhost:3000/api/empresas/${empresaId}`); 
-              
-              if (empresaRes.ok) {
-                  const empresaData = await empresaRes.json();
-                  
-                  if (onSuccess && empresaData) {
-                      onSuccess(empresaData); 
-                  }
-                  
-                  // 1. Ativa o estado de sucesso
-                  setConexaoSucesso(true); 
-                  
-                  // 2. Limpa SOMENTE o estado do QR Code (para sumir com a imagem)
-                  setQrCode(null);
-                  
-                  // 3. Limpa o formulário APÓS disparar o feedback
-                  // Usamos um timeout de 1ms para garantir que a mensagem de sucesso
-                  // seja registrada pelo React antes de limpar o formulário.
-                  setTimeout(() => {
-                      // Limpeza final de todos os inputs e estados
-                      setNome('');
-                      setTelefone('');
-                      setPromptIA('');
-                      setEmpresaId(null);
-                      setErro('');
-                  }, 1); 
+          setConexaoSucesso(true);
+          setQrCode(null);
 
-                  // 4. Define um timeout para remover a MENSAGEM de sucesso (3 segundos)
-                  setTimeout(() => {
-                      setConexaoSucesso(false);
-                  }, 3000);
-                  
-              } else {
-                  console.error(`Falha ao buscar empresa ID ${empresaId}: Status ${empresaRes.status}`);
-                  // Se falhar na busca final, apenas limpa e para o polling.
-                  setAguardandoQR(false);
-                  clearInterval(intervalo);
-              }
-              
-          } else {
-              // 2. Se não conectou, verifica se o QR Code ainda está disponível
-              const qrRes = await fetch(`http://localhost:3000/api/qr/${empresaId}`); 
-              
-              if (qrRes.status === 204) {
-                  setQrCode(null);
-              } else if (qrRes.ok) {
-                  const qrData = await qrRes.json();
-                  setQrCode(qrData.qrCode);
-              }
+          // limpa formulário logo em seguida (garantimos que React já montou a mensagem)
+          setTimeout(() => {
+            if (!isMountedRef.current) return;
+            setNome('');
+            setTelefone('');
+            setPromptIA('');
+            setEmpresaId(null);
+            setErro('');
+          }, 50);
+
+          setTimeout(() => {
+            if (!isMountedRef.current) return;
+            setConexaoSucesso(false);
+          }, 3000);
+        } else {
+          // se não conectou, verifica QR atual
+          try {
+            const qrRes = await fetch(`http://localhost:3000/api/qr/${id}`);
+            if (qrRes.status === 204) {
+              if (isMountedRef.current) setQrCode(null);
+            } else if (qrRes.ok) {
+              const qrData = await qrRes.json();
+              if (isMountedRef.current) setQrCode(qrData.qrCode);
+            }
+          } catch (err) {
+            // pode ser abort ou conexão falha
+            if (err.name !== 'AbortError') {
+              console.error('Erro ao verificar QR:', err);
+            }
           }
-        } catch (err) {
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          // ignore
+        } else {
           console.error('Erro no Polling de Status:', err);
         }
-      }, 5000);
-    }
-    return () => clearInterval(intervalo);
-  }, [aguardandoQR, empresaId, onSuccess]); // Removido o ConexaoSucesso do array, já que ele é o resultado da lógica
+      }
+    }, 3000);
+  };
 
   return (
     <Container>
       <Title>Cadastrar Empresa:</Title>
       <Form onSubmit={handleSubmit}>
-        {/* ... (Inputs existentes, com disabled) */}
         <Input
           type="text"
           placeholder="Nome da Empresa:"
@@ -400,21 +676,19 @@ const NovaEmpresa = ({ onSuccess }) => {
         </Label>
 
         <Button type="submit" disabled={loading || aguardandoQR || conexaoSucesso}>
-          {loading ? 'Cadastrando...' : 
+          {loading ? 'Cadastrando...' :
            aguardandoQR ? 'Aguardando Conexão...' : 'Cadastrar e gerar QR Code'}
         </Button>
       </Form>
 
       {erro && <MessageError>{erro}</MessageError>}
-      
-      {/* >>> NOVO: Mensagem de Sucesso Isolada (Maior prioridade na renderização) <<< */}
+
       {conexaoSucesso && (
         <MessageInfo style={{ background: '#28a745', color: 'white' }}>
             ✅ Conectado com sucesso!
         </MessageInfo>
       )}
 
-      {/* Mensagem de aguardando QR/Conexão (Somente se não estiver em estado de sucesso) */}
       {(aguardandoQR && !conexaoSucesso) && (
         <MessageInfo>
             {qrCode ? 'Escaneie o QR Code no seu WhatsApp' : 'Aguardando o QR Code ser gerado...'}
