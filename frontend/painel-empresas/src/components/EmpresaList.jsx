@@ -671,14 +671,9 @@ const EmpresasList = ({ empresas: propEmpresas, setEmpresas: setPropEmpresas }) 
                   <ButtonDanger onClick={() => apagarEmpresa(empresa._id)}>🗑️ Excluir</ButtonDanger>
                 </div>
 
-                {qrCodes[empresa._id] && (
+                {empresaEditando !== empresa._id && qrCodes[empresa._id] && (
                   <QRCodeWrapper>
-                    <p>📱 QR Code para conectar:</p>
-                    <p style={{ fontSize: '0.8rem', color: '#666' }}>Escaneie este QR Code com o WhatsApp</p>
                     <img src={qrCodes[empresa._id]} alt={`QR Code - ${empresa.nome}`} />
-                    <p style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '0.5rem' }}>
-                      ⚠️ Este QR Code expira em alguns minutos
-                    </p>
                   </QRCodeWrapper>
                 )}
               </>
