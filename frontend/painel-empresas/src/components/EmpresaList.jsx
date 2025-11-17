@@ -525,10 +525,10 @@ const EmpresasList = ({ empresas: propEmpresas, setEmpresas: setPropEmpresas }) 
     try {
       await api.delete(`/empresas/${idEmpresa}`);
       setPropEmpresas((prev) => prev.filter((e) => e._id !== idEmpresa));
-      toast.success('Empresa excluída com sucesso.');
+      console.log('Empresa excluída com sucesso.');
     } catch (err) {
       console.error('Erro ao excluir empresa:', err);
-      toast.error('Erro ao excluir empresa.');
+      console.error('Erro ao excluir empresa.');
     }
   };
 
@@ -541,10 +541,10 @@ const EmpresasList = ({ empresas: propEmpresas, setEmpresas: setPropEmpresas }) 
           e._id === idEmpresa ? { ...e, botAtivo: res.data.botAtivo } : e
         )
       );
-      toast.success(`Bot ${res.data.botAtivo ? 'ativado' : 'desativado'} com sucesso.`);
+      console.log(`Bot ${res.data.botAtivo ? 'ativado' : 'desativado'} com sucesso.`);
     } catch (err) {
       console.error('Erro ao alternar status do bot:', err);
-      toast.error('Erro ao alternar status do bot.');
+      console.error('Erro ao alternar status do bot.');
     }
   };
 
@@ -558,10 +558,10 @@ const EmpresasList = ({ empresas: propEmpresas, setEmpresas: setPropEmpresas }) 
         ...prev,
         [idEmpresa]: res.data.qrCode,
       }));
-      toast.success('QR Code gerado. Abra o app do WhatsApp para escanear.');
+      console.log('QR Code gerado. Abra o app do WhatsApp para escanear.');
     } catch (err) {
       console.error('Erro ao gerar novo QR Code:', err);
-      toast.error('Erro ao gerar QR Code.');
+      console.error('Erro ao gerar QR Code.');
     } finally {
       setLoadingEmpresa(null);
     }
@@ -579,7 +579,7 @@ const EmpresasList = ({ empresas: propEmpresas, setEmpresas: setPropEmpresas }) 
       setUpdatingIA(true);
       const token = localStorage.getItem('token');
       if (!token) {
-        toast.error('Sessão expirada. Por favor, faça login novamente.');
+        console.error('Sessão expirada. Por favor, faça login novamente.');
         return;
       }
 
@@ -596,14 +596,14 @@ const EmpresasList = ({ empresas: propEmpresas, setEmpresas: setPropEmpresas }) 
               : empresa
           )
         );
-        toast.success('IA atualizada com sucesso!');
+        console.log('IA atualizada com sucesso!');
       }
     } catch (error) {
       console.error('Erro ao atualizar IA:', error);
       if (error.response?.status === 401) {
-        toast.error('Sessão expirada. Por favor, atualize a página.');
+        console.error('Sessão expirada. Por favor, atualize a página.');
       } else {
-        toast.error('Erro ao atualizar IA. Tente novamente.');
+        console.error('Erro ao atualizar IA. Tente novamente.');
       }
     } finally {
       setUpdatingIA(false);
